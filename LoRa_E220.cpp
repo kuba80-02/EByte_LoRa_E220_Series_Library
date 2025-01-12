@@ -987,25 +987,25 @@ ResponseStatus LoRa_E220::sendConfigurationMessage( byte ADDH,byte ADDL, byte CH
 //read:
 uint16_t LoRa_E220::readRSSIAmbient() {
 	while(digitalRead(auxPin) == LOW){
-	delayMicroseconds(1);
+		delayMicroseconds(1);
 	}
     ResponseStructContainer c = ResponseStructContainer();
 	c = getConfiguration();
 	Configuration configuration = *(Configuration*) c.data;
 	if(!configuration.OPTION.RSSIAmbientNoise){
-	Serial.println("RSSI Ambient not enabled");
-	return 0xFFFF;
+		Serial.println("RSSI Ambient not enabled");
+		return 0xFFFF;
 	}
 	if(getMode() != MODE_0_NORMAL & getMode() != MODE_1_WOR_TRANSMITTER){
-	Serial.println("Module not in the correct mode, must be in normal or WOR sending");
-	return 0xFFFF;
+		Serial.println("Module not in the correct mode, must be in normal or WOR sending");
+		return 0xFFFF;
 	}
 	uint8_t response[5];
 	uint8_t data[6] = {0xC0,0xC1,0xC2,0xC3,0x00,0x02};
 	Serial1.write(data,6);
 	Serial1.readBytes(response,6);
 	if(response[0] != 0xC1 | response[1] != 0x00 | response[2] != 0x02){
-	return 0xFFFF;
+		return 0xFFFF;
 	}
 	return response[3] <<8 | response[4];
 }
