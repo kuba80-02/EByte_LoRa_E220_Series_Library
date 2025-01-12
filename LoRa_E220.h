@@ -308,6 +308,8 @@ class LoRa_E220 {
 
 		ResponseStatus sendConfigurationMessage( byte ADDH,byte ADDL, byte CHAN, Configuration *configuration, PROGRAM_COMMAND programCommand = WRITE_CFG_PWR_DWN_SAVE);
 
+		uint16_t readRSSIAmbient();
+
         int available();
 	private:
 		HardwareSerial* hs;
