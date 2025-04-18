@@ -985,29 +985,58 @@ ResponseStatus LoRa_E220::sendConfigurationMessage( byte ADDH,byte ADDL, byte CH
  */
  //write: 0
 //read:
+
+#define RSSI_AMBIENT_ERROR_RESPONSE 0xFFFF
+
 uint16_t LoRa_E220::readRSSIAmbient() {
-	while(digitalRead(auxPin) == LOW){
-		delayMicroseconds(1);
+	#define READ_START_ADDRESS 0x00
+	#define READ_LENGTH 0x02
+	#define READ_COMMAND {0xC0, 0xC1, 0xC2, 0xC3, READ_START_ADDRESS, READ_LENGTH}
+
+	#define ANSWER_PREAMBLE 0xC1
+	#define ANSWER_START_ADDRESS 0x00
+	#define ANSWER_READ_LENGTH 0x02
+	#define IS_ANSWER_CORRUPTED response[0] != ANSWER_PREAMBLE | \
+	response[1] != ANSWER_START_ADDRESS | \
+	response[2] != ANSWER_READ_LENGTH
+
+	#define NOISE_PART response[3] <<8
+	#define LAST_RSSI_PART response[4]
+
+	Status status = waitCompleteResponse(E220_WAIT_TIME);
+	if (status != E220_SUCCESS) {
+		Serial.println("Wait for complete response in rssi ambient error");
+        return RSSI_AMBIENT_ERROR_RESPONSE;
+    }
+
+    ResponseStructContainer c = getConfiguration();
+	if (c.status != E220_SUCCESS) {
+		Serial.println("Problem with loading LoRa configuration");
+		return RSSI_AMBIENT_ERROR_RESPONSE;
 	}
-    ResponseStructContainer c = ResponseStructContainer();
-	c = getConfiguration();
 	Configuration configuration = *(Configuration*) c.data;
+	c.close();
+
 	if(!configuration.OPTION.RSSIAmbientNoise){
 		Serial.println("RSSI Ambient not enabled");
-		return 0xFFFF;
+		return RSSI_AMBIENT_ERROR_RESPONSE;
 	}
+
 	if(getMode() != MODE_0_NORMAL & getMode() != MODE_1_WOR_TRANSMITTER){
 		Serial.println("Module not in the correct mode, must be in normal or WOR sending");
-		return 0xFFFF;
+		return RSSI_AMBIENT_ERROR_RESPONSE;
 	}
+
 	uint8_t response[5];
-	uint8_t data[6] = {0xC0,0xC1,0xC2,0xC3,0x00,0x02};
+	uint8_t data[6] = READ_COMMAND;
 	Serial1.write(data,6);
 	Serial1.readBytes(response,6);
-	if(response[0] != 0xC1 | response[1] != 0x00 | response[2] != 0x02){
-		return 0xFFFF;
+
+	if(IS_ANSWER_CORRUPTED){
+		return RSSI_AMBIENT_ERROR_RESPONSE;
 	}
-	return response[3] <<8 | response[4];
+
+	return NOISE_PART | LAST_RSSI_PART;
 }
 
 ResponseStatus LoRa_E220::sendBroadcastFixedMessage(byte CHAN, const void *message, const uint8_t size){
