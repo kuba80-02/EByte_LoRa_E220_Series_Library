@@ -1012,7 +1012,7 @@ uint16_t LoRa_E220::readRSSIAmbient() {
     }
 
     ResponseStructContainer c = getConfiguration();
-	if (c.status != E220_SUCCESS) {
+	if (c.status.code != E220_SUCCESS) {
 		Serial.println("Problem with loading LoRa configuration");
 		return RSSI_AMBIENT_ERROR_RESPONSE;
 	}
