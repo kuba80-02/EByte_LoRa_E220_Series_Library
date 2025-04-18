@@ -61,6 +61,8 @@
 // Define where debug output will be printed.
 #define DEBUG_PRINTER Serial
 
+#define RSSI_AMBIENT_ERROR_RESPONSE 0xFFFF
+
 // Setup debug printing macros.
 #ifdef LoRa_E220_DEBUG
 	#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }

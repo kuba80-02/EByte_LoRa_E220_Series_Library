@@ -986,8 +986,6 @@ ResponseStatus LoRa_E220::sendConfigurationMessage( byte ADDH,byte ADDL, byte CH
  //write: 0
 //read:
 
-#define RSSI_AMBIENT_ERROR_RESPONSE 0xFFFF
-
 uint16_t LoRa_E220::readRSSIAmbient() {
 	#define E220_WAIT_TIME 1000
 
